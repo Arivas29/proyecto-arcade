@@ -35,7 +35,7 @@ class GameSprite(sprite.Sprite):
         screen.blit(self.image, (self.rect.x, self.rect.y))
 
 class Player(GameSprite):
-    def update(self):
+    def update1(self): 
         keys = key.get_pressed()
         if keys[K_d] and self.rect.x <= ANCHO - self.rect.w:
             self.rect.x += self.speed
@@ -46,6 +46,17 @@ class Player(GameSprite):
         elif keys[K_s] and self.rect.y >= 0:
             self.rect.y += self.speed
 
+    def update2(self): 
+        keys = key.get_pressed()
+        if keys[K_RIGHT] and self.rect.x <= ANCHO - self.rect.w:
+            self.rect.x += self.speed
+        elif keys[K_LEFT] and self.rect.x >= 0:
+            self.rect.x -= self.speed
+        elif keys[K_UP] and self.rect.y <= ALTO - self.rect.h:
+            self.rect.y -= self.speed
+        elif keys[K_DOWN] and self.rect.y >= 0:
+            self.rect.y += self.speed
+
 
 class Enemy(GameSprite):
     pass
@@ -54,7 +65,9 @@ class Enemy(GameSprite):
 # OBJETOS
 background = transform.scale(image.load(BG_IMG), (ANCHO, ALTO))
 
-player = Player(PLAYER_IMG, (ANCHO - 80) // 2, ALTO - 70, 80, 60, 5)
+player1 = Player(PLAYER_IMG, (ANCHO - 80) // 2, ALTO - 70, 80, 60, 5)
+
+player2 = Player(PLAYER_IMG, (ANCHO - 80) // 2, ALTO - 70, 80, 60, 5)
 # trabajando con grupos:
 
 
@@ -74,8 +87,10 @@ while run:
     if not finish:
         screen.fill(BLACK)
         screen.blit(background, (0, 0))
-        player.reset()
-        player.update()
+        player1.reset()
+        player1.update1()
+        player2.reset()
+        player2.update2()
             
         # CONDICION VICTORIA
         # if victoria:
