@@ -51,13 +51,14 @@ class Player(GameSprite):
         self.reload_start_time = 0
         self.reloading = False
 
-    def shoot(self, direction, group):
+    def shoot(self, direction, group, bullet_sprite):
         current_time = time.get_ticks()
         
         if not self.reloading:
             # Verificar si ha pasado 1 segundo (1000ms) desde el último tiro
             if self.ammo > 0 and (current_time - self.last_shot_time > 1000):
-                bullet = Bullet(BULLET, self.rect.centerx, self.rect.centery, 15, 10, 10, direction)
+                # Ahora usamos bullet_sprite que viene desde el ciclo principal
+                bullet = Bullet(bullet_sprite, self.rect.centerx, self.rect.centery, 30, 20, 10, direction)
                 group.add(bullet)
                 self.ammo -= 1
                 self.last_shot_time = current_time
@@ -81,7 +82,7 @@ class Player(GameSprite):
             self.rect.y += self.speed
         if keys[K_a] and self.rect.x > 0:
             self.rect.x -= self.speed
-        if keys[K_d] and self.rect.x < (ANCHO // 2) - self.rect.w: # Límite mitad izquierda
+        if keys[K_d] and self.rect.x < (ANCHO // 2) - self.rect.w:
             self.rect.x += self.speed
 
     def update2(self): 
@@ -90,7 +91,7 @@ class Player(GameSprite):
             self.rect.y -= self.speed
         if keys[K_DOWN] and self.rect.y < ALTO - self.rect.h:
             self.rect.y += self.speed
-        if keys[K_LEFT] and self.rect.x > (ANCHO // 2): # Límite mitad derecha
+        if keys[K_LEFT] and self.rect.x > (ANCHO // 2):
             self.rect.x -= self.speed
         if keys[K_RIGHT] and self.rect.x < ANCHO - self.rect.w:
             self.rect.x += self.speed
@@ -102,8 +103,8 @@ except:
     background = Surface((ANCHO, ALTO))
     background.fill(BACK_COLOR)
 
-# Jugador 1: Izquierda medio | Jugador 2: Derecha medio
-player1 = Player(PLAYER_IMG, 50, (ALTO // 2) - 30, 60, 60, 5)
+# Jugador 1: Izquierda | Jugador 2: Derecha
+player1 = Player(PLAYER_IMG, 50, (ALTO // 2) - 30, 60, 60, 5    )
 player2 = Player(PLAYER_IMG2, ANCHO - 110, (ALTO // 2) - 30, 60, 60, 5)
 
 bullets = sprite.Group()
@@ -117,14 +118,17 @@ while run:
     for e in event.get():
         if e.type == QUIT:
             run = False
+        
         if e.type == KEYDOWN:
             if e.key == K_r:
                 finish = False
-            # Disparos
-            if e.key == K_SPACE: # P1 dispara con Espacio
-                player1.shoot(1, bullets)
-            if e.key == K_RETURN: # P2 dispara con Enter
-                player2.shoot(-1, bullets)
+            
+            # DISPAROS PERSONALIZADOS
+            if e.key == K_SPACE: # P1 dispara COCACOLA
+                player1.shoot(1, bullets, BULLET)
+            
+            if e.key == K_RETURN: # P2 dispara DÓLAR
+                player2.shoot(-1, bullets, BULLET_IMG)
 
     if not finish:
         screen.blit(background, (0, 0))
