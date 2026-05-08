@@ -57,7 +57,7 @@ class Player(GameSprite):
         if not self.reloading:
             # Verificar si ha pasado 1 segundo (1000ms) desde el último tiro
             if self.ammo > 0 and (current_time - self.last_shot_time > 1000):
-                bullet = Bullet(PLAYER_IMG, self.rect.centerx, self.rect.centery, 15, 10, 10, direction)
+                bullet = Bullet(BULLET, self.rect.centerx, self.rect.centery, 15, 10, 10, direction)
                 group.add(bullet)
                 self.ammo -= 1
                 self.last_shot_time = current_time
@@ -104,7 +104,7 @@ except:
 
 # Jugador 1: Izquierda medio | Jugador 2: Derecha medio
 player1 = Player(PLAYER_IMG, 50, (ALTO // 2) - 30, 60, 60, 5)
-player2 = Player(PLAYER_IMG, ANCHO - 110, (ALTO // 2) - 30, 60, 60, 5)
+player2 = Player(PLAYER_IMG2, ANCHO - 110, (ALTO // 2) - 30, 60, 60, 5)
 
 bullets = sprite.Group()
 
