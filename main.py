@@ -6,7 +6,8 @@ init()
 
 # TRABAJO CON FUENTES
 font.init()
-f1 = font.SysFont('Arial', 20)
+# Fuente grande (tamaño 32) para las estadísticas
+f1 = font.SysFont('Arial', 32)
 
 # MAIN WINDOW
 screen = display.set_mode((ANCHO, ALTO))
@@ -59,8 +60,7 @@ class Player(GameSprite):
             # Verificar si ha pasado 1 segundo (1000ms) desde el último tiro
             if self.ammo > 0 and (current_time - self.last_shot_time > 1000):
                 
-                # --- NUEVA CORRECCIÓN DE ALTURA ---
-                # Bajamos el punto restando solo 15 en vez de 45 para que salga del pecho/arma
+                # --- CORRECCIÓN DE ALTURA ---
                 altura_disparo = self.rect.centery - 15
                 
                 bullet = Bullet(bullet_sprite, self.rect.centerx, altura_disparo, 30, 20, 10, direction)
@@ -108,25 +108,31 @@ except:
     background = Surface((ANCHO, ALTO))
     background.fill(BACK_COLOR)
 
-# Cargar imagen de fin de juego
+# --- CARGAR LAS DOS IMÁGENES DE VICTORIA ---
 try:
-    game_over_img = transform.scale(image.load(WIN_IMG), (ANCHO, ALTO))
+    win_p1_img = transform.scale(image.load(WIN_P1), (ANCHO, ALTO))
 except:
-    # Si no encuentra la imagen de fin de juego, crea un fondo rojo de respaldo
-    game_over_img = Surface((ANCHO, ALTO))
-    game_over_img.fill((150, 0, 0))
+    win_p1_img = Surface((ANCHO, ALTO))
+    win_p1_img.fill((0, 150, 0)) # Respaldo verde si falla
+
+try:
+    win_p2_img = transform.scale(image.load(WIN_P2), (ANCHO, ALTO))
+except:
+    win_p2_img = Surface((ANCHO, ALTO))
+    win_p2_img.fill((0, 0, 150)) # Respaldo azul si falla
 
 # Jugador 1: Izquierda | Jugador 2: Derecha
 player1 = Player(PLAYER_IMG, 60, (ALTO // 2) - 80, 150, 160, 5)
 player2 = Player(PLAYER_IMG2, ANCHO - 210, (ALTO // 2) - 80, 150, 160, 5)
 
-# Separamos los grupos de balas para evitar que un jugador choque con sus propios tiros
+# Separamos los grupos de balas
 bullets1 = sprite.Group()
 bullets2 = sprite.Group()
 
 # CICLO DE JUEGO
 run = True
 finish = False
+ganador = 0 # 0 = Nadie, 1 = Gana P1, 2 = Gana P2
 clock = time.Clock()
 
 while run:
@@ -147,6 +153,7 @@ while run:
                 player2.rect.x, player2.rect.y = ANCHO - 210, (ALTO // 2) - 80
                 bullets1.empty()
                 bullets2.empty()
+                ganador = 0 
                 finish = False
             
             # Solo disparar si la partida sigue activa
@@ -160,8 +167,7 @@ while run:
     if not finish:
         screen.blit(background, (0, 0))
         
-        # Dibujar línea divisoria
-        draw.line(screen, WHITE, (ANCHO // 2, 0), (ANCHO // 2, ALTO), 2)
+        # --- SE ELIMINÓ LA LÍNEA BLANCA DIVISORIA AQUÍ ---
         
         # Actualización de posiciones
         player1.update1()
@@ -169,15 +175,17 @@ while run:
         bullets1.update()
         bullets2.update()
         
-        # --- SISTEMA DE COLISIONES ---
+        # --- SISTEMA DE COLISIONES Y DETERMINACIÓN DEL GANADOR ---
         if sprite.spritecollide(player2, bullets1, True):
             player2.lives -= 1
             if player2.lives <= 0:
+                ganador = 1 
                 finish = True
 
         if sprite.spritecollide(player1, bullets2, True):
             player1.lives -= 1
             if player1.lives <= 0:
+                ganador = 2 
                 finish = True
         
         # Renderizado de sprites en pantalla
@@ -186,15 +194,22 @@ while run:
         bullets1.draw(screen)
         bullets2.draw(screen)
 
-        # Mostrar interfaz de Balas y Vidas en la parte superior
+        # --- Renderizado y alineación perfecta de textos extremos ---
         txt_p1 = f1.render(f"Balas: {player1.ammo if not player1.reloading else 'Recargando...'} | Vidas: {player1.lives}", True, WHITE)
         txt_p2 = f1.render(f"Balas: {player2.ammo if not player2.reloading else 'Recargando...'} | Vidas: {player2.lives}", True, WHITE)
+        
+        # Player 1 se queda fijo a la izquierda (X=30)
         screen.blit(txt_p1, (30, 25))
-        screen.blit(txt_p2, (ANCHO - 320, 25)) 
+        
+        # Player 2 se calcula dinámicamente restando su propio ancho del borde total (ANCHO - ancho_del_texto - 30)
+        screen.blit(txt_p2, (ANCHO - txt_p2.get_width() - 30, 25)) 
 
     else:
-        # PANTALLA DE FIN DE JUEGO
-        screen.blit(game_over_img, (0, 0))
+        # --- PANTALLA DE FIN DE JUEGO SELECCIONADA POR GANADOR ---
+        if ganador == 1:
+            screen.blit(win_p1_img, (0, 0))
+        elif ganador == 2:
+            screen.blit(win_p2_img, (0, 0))
         
         # Texto de ayuda superpuesto para reiniciar
         txt_restart = f1.render("Presiona 'R' para reiniciar la partida", True, WHITE)
