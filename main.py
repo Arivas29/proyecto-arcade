@@ -58,7 +58,12 @@ class Player(GameSprite):
         if not self.reloading:
             # Verificar si ha pasado 1 segundo (1000ms) desde el último tiro
             if self.ammo > 0 and (current_time - self.last_shot_time > 1000):
-                bullet = Bullet(bullet_sprite, self.rect.centerx, self.rect.centery, 30, 20, 10, direction)
+                
+                # --- NUEVA CORRECCIÓN DE ALTURA ---
+                # Bajamos el punto restando solo 15 en vez de 45 para que salga del pecho/arma
+                altura_disparo = self.rect.centery - 15
+                
+                bullet = Bullet(bullet_sprite, self.rect.centerx, altura_disparo, 30, 20, 10, direction)
                 group.add(bullet)
                 self.ammo -= 1
                 self.last_shot_time = current_time
@@ -112,8 +117,8 @@ except:
     game_over_img.fill((150, 0, 0))
 
 # Jugador 1: Izquierda | Jugador 2: Derecha
-player1 = Player(PLAYER_IMG, 50, (ALTO // 2) - 30, 150, 160, 5)
-player2 = Player(PLAYER_IMG2, ANCHO - 170, (ALTO // 2) - 30, 150, 160, 5)
+player1 = Player(PLAYER_IMG, 60, (ALTO // 2) - 80, 150, 160, 5)
+player2 = Player(PLAYER_IMG2, ANCHO - 210, (ALTO // 2) - 80, 150, 160, 5)
 
 # Separamos los grupos de balas para evitar que un jugador choque con sus propios tiros
 bullets1 = sprite.Group()
@@ -138,8 +143,8 @@ while run:
                 player2.ammo = 5
                 player1.reloading = False
                 player2.reloading = False
-                player1.rect.x, player1.rect.y = 50, (ALTO // 2) - 30
-                player2.rect.x, player2.rect.y = ANCHO - 170, (ALTO // 2) - 30
+                player1.rect.x, player1.rect.y = 60, (ALTO // 2) - 80
+                player2.rect.x, player2.rect.y = ANCHO - 210, (ALTO // 2) - 80
                 bullets1.empty()
                 bullets2.empty()
                 finish = False
@@ -165,13 +170,11 @@ while run:
         bullets2.update()
         
         # --- SISTEMA DE COLISIONES ---
-        # Si las balas del Jugador 1 golpean al Jugador 2
         if sprite.spritecollide(player2, bullets1, True):
             player2.lives -= 1
             if player2.lives <= 0:
                 finish = True
 
-        # Si las balas del Jugador 2 golpean al Jugador 1
         if sprite.spritecollide(player1, bullets2, True):
             player1.lives -= 1
             if player1.lives <= 0:
@@ -186,8 +189,8 @@ while run:
         # Mostrar interfaz de Balas y Vidas en la parte superior
         txt_p1 = f1.render(f"Balas: {player1.ammo if not player1.reloading else 'Recargando...'} | Vidas: {player1.lives}", True, WHITE)
         txt_p2 = f1.render(f"Balas: {player2.ammo if not player2.reloading else 'Recargando...'} | Vidas: {player2.lives}", True, WHITE)
-        screen.blit(txt_p1, (20, 20))
-        screen.blit(txt_p2, (ANCHO - 240, 20)) # Ajustado espacio para evitar cortes en el texto
+        screen.blit(txt_p1, (30, 25))
+        screen.blit(txt_p2, (ANCHO - 320, 25)) 
 
     else:
         # PANTALLA DE FIN DE JUEGO
@@ -195,7 +198,7 @@ while run:
         
         # Texto de ayuda superpuesto para reiniciar
         txt_restart = f1.render("Presiona 'R' para reiniciar la partida", True, WHITE)
-        screen.blit(txt_restart, (ANCHO // 2 - txt_restart.get_width() // 2, ALTO - 50))
+        screen.blit(txt_restart, (ANCHO // 2 - txt_restart.get_width() // 2, ALTO - 60))
 
     display.update()
     clock.tick(FPS)
