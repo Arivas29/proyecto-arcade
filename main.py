@@ -112,8 +112,8 @@ except:
     game_over_img.fill((150, 0, 0))
 
 # Jugador 1: Izquierda | Jugador 2: Derecha
-player1 = Player(PLAYER_IMG, 50, (ALTO // 2) - 30, 60, 60, 5)
-player2 = Player(PLAYER_IMG2, ANCHO - 110, (ALTO // 2) - 30, 60, 60, 5)
+player1 = Player(PLAYER_IMG, 50, (ALTO // 2) - 30, 150, 160, 5)
+player2 = Player(PLAYER_IMG2, ANCHO - 170, (ALTO // 2) - 30, 150, 160, 5)
 
 # Separamos los grupos de balas para evitar que un jugador choque con sus propios tiros
 bullets1 = sprite.Group()
