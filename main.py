@@ -139,7 +139,7 @@ while run:
                 player1.reloading = False
                 player2.reloading = False
                 player1.rect.x, player1.rect.y = 50, (ALTO // 2) - 30
-                player2.rect.x, player2.rect.y = ANCHO - 110, (ALTO // 2) - 30
+                player2.rect.x, player2.rect.y = ANCHO - 170, (ALTO // 2) - 30
                 bullets1.empty()
                 bullets2.empty()
                 finish = False
