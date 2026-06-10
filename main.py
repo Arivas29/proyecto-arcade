@@ -47,6 +47,7 @@ class Player(GameSprite):
     def __init__(self, sprite_img, cord_x, cord_y, width, height, speed=0):
         super().__init__(sprite_img, cord_x, cord_y, width, height, speed)
         self.ammo = 5
+        self.lives = 3 # Inicializamos con 3 vidas
         self.last_shot_time = 0
         self.reload_start_time = 0
         self.reloading = False
@@ -57,7 +58,6 @@ class Player(GameSprite):
         if not self.reloading:
             # Verificar si ha pasado 1 segundo (1000ms) desde el último tiro
             if self.ammo > 0 and (current_time - self.last_shot_time > 1000):
-                # Ahora usamos bullet_sprite que viene desde el ciclo principal
                 bullet = Bullet(bullet_sprite, self.rect.centerx, self.rect.centery, 30, 20, 10, direction)
                 group.add(bullet)
                 self.ammo -= 1
@@ -103,11 +103,21 @@ except:
     background = Surface((ANCHO, ALTO))
     background.fill(BACK_COLOR)
 
+# Cargar imagen de fin de juego
+try:
+    game_over_img = transform.scale(image.load(WIN_IMG), (ANCHO, ALTO))
+except:
+    # Si no encuentra la imagen de fin de juego, crea un fondo rojo de respaldo
+    game_over_img = Surface((ANCHO, ALTO))
+    game_over_img.fill((150, 0, 0))
+
 # Jugador 1: Izquierda | Jugador 2: Derecha
-player1 = Player(PLAYER_IMG, 50, (ALTO // 2) - 30, 60, 60, 5    )
+player1 = Player(PLAYER_IMG, 50, (ALTO // 2) - 30, 60, 60, 5)
 player2 = Player(PLAYER_IMG2, ANCHO - 110, (ALTO // 2) - 30, 60, 60, 5)
 
-bullets = sprite.Group()
+# Separamos los grupos de balas para evitar que un jugador choque con sus propios tiros
+bullets1 = sprite.Group()
+bullets2 = sprite.Group()
 
 # CICLO DE JUEGO
 run = True
@@ -120,15 +130,27 @@ while run:
             run = False
         
         if e.type == KEYDOWN:
+            # Reiniciar juego completo al presionar 'R'
             if e.key == K_r:
+                player1.lives = 3
+                player2.lives = 3
+                player1.ammo = 5
+                player2.ammo = 5
+                player1.reloading = False
+                player2.reloading = False
+                player1.rect.x, player1.rect.y = 50, (ALTO // 2) - 30
+                player2.rect.x, player2.rect.y = ANCHO - 110, (ALTO // 2) - 30
+                bullets1.empty()
+                bullets2.empty()
                 finish = False
             
-            # DISPAROS PERSONALIZADOS
-            if e.key == K_SPACE: # P1 dispara COCACOLA
-                player1.shoot(1, bullets, BULLET)
-            
-            if e.key == K_RETURN: # P2 dispara DÓLAR
-                player2.shoot(-1, bullets, BULLET_IMG)
+            # Solo disparar si la partida sigue activa
+            if not finish:
+                if e.key == K_SPACE: # P1 dispara COCACOLA
+                    player1.shoot(1, bullets1, BULLET)
+                
+                if e.key == K_RETURN: # P2 dispara DÓLAR
+                    player2.shoot(-1, bullets2, BULLET_IMG)
 
     if not finish:
         screen.blit(background, (0, 0))
@@ -136,21 +158,44 @@ while run:
         # Dibujar línea divisoria
         draw.line(screen, WHITE, (ANCHO // 2, 0), (ANCHO // 2, ALTO), 2)
         
-        # Actualización
+        # Actualización de posiciones
         player1.update1()
         player2.update2()
-        bullets.update()
+        bullets1.update()
+        bullets2.update()
         
-        # Renderizado
+        # --- SISTEMA DE COLISIONES ---
+        # Si las balas del Jugador 1 golpean al Jugador 2
+        if sprite.spritecollide(player2, bullets1, True):
+            player2.lives -= 1
+            if player2.lives <= 0:
+                finish = True
+
+        # Si las balas del Jugador 2 golpean al Jugador 1
+        if sprite.spritecollide(player1, bullets2, True):
+            player1.lives -= 1
+            if player1.lives <= 0:
+                finish = True
+        
+        # Renderizado de sprites en pantalla
         player1.reset()
         player2.reset()
-        bullets.draw(screen)
+        bullets1.draw(screen)
+        bullets2.draw(screen)
 
-        # Mostrar munición en pantalla
-        txt_p1 = f1.render(f"Balas: {player1.ammo if not player1.reloading else 'Recargando...'}", True, WHITE)
-        txt_p2 = f1.render(f"Balas: {player2.ammo if not player2.reloading else 'Recargando...'}", True, WHITE)
+        # Mostrar interfaz de Balas y Vidas en la parte superior
+        txt_p1 = f1.render(f"Balas: {player1.ammo if not player1.reloading else 'Recargando...'} | Vidas: {player1.lives}", True, WHITE)
+        txt_p2 = f1.render(f"Balas: {player2.ammo if not player2.reloading else 'Recargando...'} | Vidas: {player2.lives}", True, WHITE)
         screen.blit(txt_p1, (20, 20))
-        screen.blit(txt_p2, (ANCHO - 150, 20))
+        screen.blit(txt_p2, (ANCHO - 240, 20)) # Ajustado espacio para evitar cortes en el texto
+
+    else:
+        # PANTALLA DE FIN DE JUEGO
+        screen.blit(game_over_img, (0, 0))
+        
+        # Texto de ayuda superpuesto para reiniciar
+        txt_restart = f1.render("Presiona 'R' para reiniciar la partida", True, WHITE)
+        screen.blit(txt_restart, (ANCHO // 2 - txt_restart.get_width() // 2, ALTO - 50))
 
     display.update()
     clock.tick(FPS)
